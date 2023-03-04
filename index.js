@@ -1,5 +1,6 @@
 require('dotenv').config();
 require('express-async-errors');
+require('./config/passport');
 
 const express = require('express');
 const mongoose = require('mongoose');
