@@ -45,10 +45,10 @@ passport.use(
     )
 );
 
-passport.serializeUser((user, done) => done(null, user.email));
+passport.serializeUser((user, done) => done(null, user.id));
 
-passport.deserializeUser(async (email, done) => {
-    const user = await User.findOne({ email });
+passport.deserializeUser(async (id, done) => {
+    const user = await User.findById(id);
     if (!user) return done(new Error('User not found'));
     done(null, user);
 });
