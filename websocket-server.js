@@ -1,9 +1,9 @@
 const { WebSocketServer, OPEN } = require('ws');
+const Chat = require('./models/chat');
+const Message = require('./models/message');
 
 const wss = new WebSocketServer({ noServer: true });
 const clients = new Map();
-// const chatListClients = new Map();
-// const chatClients = new Map();
 
 function handleUpgrade(request, socket, head) {
     wss.handleUpgrade(request, socket, head, (ws) => {
@@ -16,12 +16,27 @@ wss.on('connection', (ws, request) => {
 
     clients.set(userId, ws);
 
-    ws.on('message', (message) => {
-        const data = JSON.parse(message);
+    ws.on('message', async (message) => {
+        const { chatId, content } = JSON.parse(message);
+        const chat = await Chat.findById(chatId);
 
-        clients.forEach((client) => {
+        try {
+            const message = new Message({ userId, content });
+            const savedMessage = await message.save();
+            chat.messages.push(savedMessage.id);
+            await chat.save();
+        } catch (error) {
+            console.log(error);
+        }
+
+        const mapped = chat.participants
+            .map(String)
+            .map(clients.get.bind(clients))
+            .filter(Boolean);
+
+        mapped.forEach((client) => {
             if (client.readyState !== OPEN) return;
-            client.send(JSON.stringify(data.text));
+            client.send(message);
         });
 
         // const receiver = clients.get(data.receiverId);

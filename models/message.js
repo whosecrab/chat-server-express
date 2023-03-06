@@ -1,9 +1,8 @@
 const { Schema, model, ObjectId } = require('mongoose');
 
 module.exports = model(
-    'Chat',
+    'Message',
     new Schema({
-        chatId: { type: ObjectId, required: true },
         userId: { type: ObjectId, required: true },
         content: { type: String, required: true },
     })

@@ -9,7 +9,6 @@ const cors = require('cors');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
 const passport = require('passport');
-const { WebSocketServer } = require('ws');
 const { handleUpgrade } = require('./websocket-server');
 const authRouter = require('./routes/auth');
 const auth = require('./middlewares/auth');

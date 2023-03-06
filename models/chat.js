@@ -5,7 +5,10 @@ module.exports = model(
     new Schema({
         participants: {
             type: [ObjectId],
-            validate: (value) => Array.isArray(value) && value.length === 2,
+            // TODO: revert to 2 after "create chat" has been added
+            validate: (value) => Array.isArray(value) && value.length,
+            // validate: (value) => Array.isArray(value) && value.length === 2,
         },
+        messages: [ObjectId],
     })
 );
