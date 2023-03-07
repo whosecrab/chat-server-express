@@ -4,35 +4,48 @@ const Message = require('../models/message');
 
 const router = express.Router();
 
-router.get('/:id', async (req, res) => {
-    const { messages } = await Chat.findById(req.params.id)
-        .slice('messages', -5)
-        .exec();
+router.get('/', async (req, res) => {
+    const userId = req.session.passport.user;
 
-    const result = await Message.find({
-        _id: {
-            $in: messages,
-        },
+    // TODO: store chat ids in user model
+    const chats = await Chat.find({
+        participants: { $in: [userId] },
+    })
+        .populate({ path: 'participants', match: { _id: { $ne: userId } } })
+        .populate({
+            path: 'messages',
+            options: { sort: { createdAt: -1 }, limit: 1 },
+        });
+
+    const data = chats.map((chat) => ({
+        id: chat._id,
+        user: chat.participants[0],
+        message: chat.messages[0]?.content || '',
+    }));
+
+    res.json(data);
+});
+
+router.get('/:chatId', async (req, res) => {
+    const { chatId } = req.params;
+
+    const { messages } = await Chat.findById(chatId).populate({
+        path: 'messages',
+        options: { sort: { createdAt: -1 }, limit: 5 },
     });
 
-    res.json(result);
+    // TODO: map messages
+    res.json(messages);
 });
 
 router.post('/', async (req, res) => {
-    const chat = new Chat({
-        participants: [req.body.senderId, req.body.receiverId],
-    });
+    // TODO: append "ids"
+    // TODO: check if a chat already exists
+    const participants = [req.body.senderId, req.body.receiverId];
+    const chat = new Chat({ participants });
 
     const newChat = await chat.save();
     res.json(newChat);
-});
-
-router.post('/:userId', async (req, res) => {
-    const chats = await Chat.find({
-        participants: { $in: [req.params.userId] },
-    });
-
-    res.json(chats);
 });
 
 module.exports = router;

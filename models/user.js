@@ -1,4 +1,4 @@
-const { Schema, model } = require('mongoose');
+const { Schema, model, ObjectId } = require('mongoose');
 
 module.exports = model(
     'User',
@@ -7,5 +7,6 @@ module.exports = model(
         email: { type: String, required: true },
         password: { type: String, select: false },
         picture: String,
+        chats: [ObjectId],
     })
 );

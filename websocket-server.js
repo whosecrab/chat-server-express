@@ -19,24 +19,21 @@ wss.on('connection', (ws, request) => {
     ws.on('message', async (message) => {
         const { chatId, content } = JSON.parse(message);
         const chat = await Chat.findById(chatId);
+        const participants = chat.participants.map(String);
 
-        try {
-            const message = new Message({ userId, content });
-            const savedMessage = await message.save();
-            chat.messages.push(savedMessage.id);
-            await chat.save();
-        } catch (error) {
-            console.log(error);
-        }
+        if (!participants.includes(userId)) return;
 
-        const mapped = chat.participants
-            .map(String)
+        const savedMessage = await new Message({ userId, content }).save();
+        chat.messages.push(savedMessage.id);
+        await chat.save();
+
+        const mapped = participants
             .map(clients.get.bind(clients))
             .filter(Boolean);
 
         mapped.forEach((client) => {
             if (client.readyState !== OPEN) return;
-            client.send(message);
+            client.send(JSON.stringify(savedMessage));
         });
 
         // const receiver = clients.get(data.receiverId);
